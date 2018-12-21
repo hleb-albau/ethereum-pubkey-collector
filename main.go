@@ -8,6 +8,13 @@ import (
 )
 
 func main() {
+
+	db, err := OpenDb("./eth-pubkeys")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Last processed block %v", db.GetLastProcessedBlock())
+
 	client, err := ethclient.Dial("https://mainnet.infura.io")
 	if err != nil {
 		log.Fatal(err)

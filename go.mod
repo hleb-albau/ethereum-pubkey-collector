@@ -8,6 +8,6 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/rs/cors v1.6.0 // indirect
-	github.com/syndtr/goleveldb v0.0.0-20181128100959-b001fa50d6b2 // indirect
+	github.com/syndtr/goleveldb v0.0.0-20181128100959-b001fa50d6b2
 	golang.org/x/net v0.0.0-20181220203305-927f97764cc3 // indirect
 )
