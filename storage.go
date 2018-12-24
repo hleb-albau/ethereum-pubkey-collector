@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -19,8 +20,8 @@ func OpenDb(path string) (Db, error) {
 		index := make(map[string]struct{})
 		iter := db.NewIterator(nil, nil)
 		for iter.Next() {
-			addressAsBytes := iter.Key()
-			index[string(addressAsBytes)] = struct{}{}
+			address := common.BytesToAddress(iter.Key())
+			index[address.Hex()] = struct{}{}
 		}
 		iter.Release()
 		return Db{base: db, index: index}, iter.Error()
@@ -39,13 +40,16 @@ func (db *Db) GetLastProcessedBlock() uint64 {
 
 func (db *Db) SaveLastProcessedBlock(num uint64) {
 
-	var numbAsBytes []byte
+	numbAsBytes := make([]byte, 8)
 	binary.LittleEndian.PutUint64(numbAsBytes, num)
 	_ = db.base.Put(lastBlockKey, numbAsBytes, nil)
 }
 
-func (db *Db) SaveAddressPublicKey(address string, key string) {
-	if _, knownAddress := db.index[address]; !knownAddress {
-		_ = db.base.Put([]byte(address), []byte(key), nil)
-	}
+func (db *Db) SaveAddressPublicKey(address common.Address, pubkey []byte) {
+	_ = db.base.Put(address[:], pubkey, nil)
+	db.index[address.Hex()] = struct{}{}
+}
+
+func (db *Db) GetKnownAddressedCount() int {
+	return len(db.index)
 }
