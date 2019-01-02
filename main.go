@@ -19,6 +19,7 @@ func main() {
 	}
 
 	rootCmd.AddCommand(CollectCmd())
+	rootCmd.AddCommand(CosmosAddressCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

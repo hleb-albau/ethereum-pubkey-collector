@@ -62,7 +62,7 @@ func CollectCmd() *cobra.Command {
 				for _, tx := range block.Transactions() {
 					// process only first txes for each address
 					if tx.Nonce() == 0 {
-						address, pubkey := GetPubKey(tx, blockNum)
+						address, pubkey := GetPubKey(tx)
 						db.SaveAddressPublicKey(address, pubkey)
 					}
 				}

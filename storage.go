@@ -53,3 +53,8 @@ func (db *Db) SaveAddressPublicKey(address common.Address, pubkey []byte) {
 func (db *Db) GetKnownAddressedCount() int {
 	return len(db.index)
 }
+
+func (db *Db) GetAddressPublicKey(address common.Address) (key []byte) {
+	key, _ = db.base.Get(address[:], nil)
+	return
+}
