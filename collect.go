@@ -13,6 +13,7 @@ const (
 	nodeUrlFlag = "node-url"
 )
 
+// Usage: eth-pub-keys collect --node-url=https://mainnet.infura.io
 func CollectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "collect",
@@ -21,11 +22,11 @@ func CollectCmd() *cobra.Command {
            In particular, it extracts r,v,s signature components of each transaction and calculates the secp256k1 
            public key associated with the Ethereum account that created the transaction. 
            Collected data are stored in LevelDb as current sub-folder "eth-pubkeys".`,
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 
-			db, err := OpenDb("./eth-pubkeys")
+			db, err := OpenDb("eth-pubkeys")
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			lastProcessedBlock := int64(db.GetLastProcessedBlock())
@@ -33,12 +34,12 @@ func CollectCmd() *cobra.Command {
 
 			client, err := ethclient.Dial(viper.GetString(nodeUrlFlag))
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			header, err := client.HeaderByNumber(ctx, nil)
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			lastNetworkBlock := header.Number.Int64()
@@ -47,7 +48,7 @@ func CollectCmd() *cobra.Command {
 			for blockNum := lastProcessedBlock; blockNum <= lastNetworkBlock; blockNum++ {
 
 				if blockNum%100 == 0 {
-					log.Printf("Processing block %v. Collected %v addresses.", blockNum, db.GetKnownAddressedCount())
+					log.Printf("Processing block %v.", blockNum)
 					db.SaveLastProcessedBlock(uint64(blockNum))
 				}
 
@@ -68,6 +69,7 @@ func CollectCmd() *cobra.Command {
 				}
 			}
 			log.Printf("Collecting pubkeys till %v block finished", lastNetworkBlock)
+			return nil
 		},
 	}
 	cmd.Flags().String(nodeUrlFlag, "https://mainnet.infura.io", "web3 endpoint")

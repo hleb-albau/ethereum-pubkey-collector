@@ -7,26 +7,14 @@ import (
 )
 
 type Db struct {
-	base  *leveldb.DB
-	index map[string]struct{}
+	base *leveldb.DB
 }
 
 var lastBlockKey = []byte("last_processed_block")
 
 func OpenDb(path string) (Db, error) {
-
 	db, err := leveldb.OpenFile(path, nil)
-	if err == nil {
-		index := make(map[string]struct{})
-		iter := db.NewIterator(nil, nil)
-		for iter.Next() {
-			address := common.BytesToAddress(iter.Key())
-			index[address.Hex()] = struct{}{}
-		}
-		iter.Release()
-		return Db{base: db, index: index}, iter.Error()
-	}
-	return Db{}, err
+	return Db{base: db}, err
 }
 
 func (db *Db) GetLastProcessedBlock() uint64 {
@@ -45,16 +33,23 @@ func (db *Db) SaveLastProcessedBlock(num uint64) {
 	_ = db.base.Put(lastBlockKey, numbAsBytes, nil)
 }
 
-func (db *Db) SaveAddressPublicKey(address common.Address, pubkey []byte) {
-	_ = db.base.Put(address[:], pubkey, nil)
-	db.index[address.Hex()] = struct{}{}
+func (db *Db) SavePublicKeysBatch(batch *leveldb.Batch) {
+	_ = db.base.Write(batch, nil)
 }
 
-func (db *Db) GetKnownAddressedCount() int {
-	return len(db.index)
+func (db *Db) SaveAddressPublicKey(address common.Address, pubkey []byte) {
+	_ = db.base.Put(address[:], pubkey, nil)
 }
 
 func (db *Db) GetAddressPublicKey(address common.Address) (key []byte) {
 	key, _ = db.base.Get(address[:], nil)
 	return
+}
+
+func (db *Db) IteratePubkeys(execute func(address []byte, key []byte)) {
+	iter := db.base.NewIterator(nil, nil)
+	for iter.Next() {
+		execute(iter.Key(), iter.Value())
+	}
+	iter.Release()
 }

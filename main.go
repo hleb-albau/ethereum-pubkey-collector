@@ -20,6 +20,7 @@ func main() {
 
 	rootCmd.AddCommand(CollectCmd())
 	rootCmd.AddCommand(CosmosAddressCmd())
+	rootCmd.AddCommand(MergeDbsCmd())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

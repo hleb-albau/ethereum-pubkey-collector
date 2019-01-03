@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/pkg/errors"
@@ -10,7 +11,6 @@ import (
 	"github.com/tendermint/tendermint/libs/bech32"
 
 	"github.com/spf13/cobra"
-	"log"
 )
 
 const (
@@ -18,33 +18,35 @@ const (
 	accPrefixFlag = "acc-prefix"
 )
 
+// Usage: eth-pub-keys cosmos-address --address=0x7C4401aE98F12eF6de39aE24cf9fc51f80EBa16B --acc-prefix=cbd
 func CosmosAddressCmd() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "cosmos-address",
 		Short: "Calculates for given eth address cosmos-based chain address",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 
-			db, err := OpenDb("/home/hlb/projects/eth-pub-keys/eth-pubkeys")
+			db, err := OpenDb("eth-pubkeys")
 			if err != nil {
-				log.Fatal(err)
+				return err
 			}
 
 			ethAddrHex := viper.GetString(addressFlag)
 
 			if !common.IsHexAddress(ethAddrHex) {
-				panic(errors.New("ETH address provided in wrong format"))
+				return errors.New("ETH address provided in wrong format")
 			}
 
 			ethAddr := common.HexToAddress(ethAddrHex)
 			ethRawPubkey := db.GetAddressPublicKey(ethAddr)
 
 			if ethRawPubkey == nil {
-				panic(errors.New("No public key found for provided address"))
+				return errors.New("No public key found for provided address")
 			}
 
 			cosmosAddr := CosmosAddressFromEthKey(ethRawPubkey)
-			log.Printf("[Eth: %s] [Cosmos: %s]", ethAddrHex, EncodeToHex(cosmosAddr, viper.GetString(accPrefixFlag)))
+			fmt.Printf("[Eth: %s] [Cosmos: %s]", ethAddrHex, EncodeToHex(cosmosAddr, viper.GetString(accPrefixFlag)))
+			return nil
 		},
 	}
 	cmd.Flags().String(addressFlag, "", "hex encoded eth address")
