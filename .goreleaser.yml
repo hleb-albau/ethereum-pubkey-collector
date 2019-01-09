@@ -2,12 +2,10 @@ project_name: eth-pubkeys
 
 builds:
   -
-    main: ./main.go
+    main: ./
     binary: eth-pubkeys
     goos:
       - linux
-      - darwin
-      - windows
     goarch:
       - amd64
 

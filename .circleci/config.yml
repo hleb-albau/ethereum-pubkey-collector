@@ -44,10 +44,12 @@ workflows:
   cyberd_build:
     jobs:
       - build_and_test:
+          context: Default
           filters:
             tags:
               only: /.*/
       - release_binaries:
+          context: Default
           <<: *release_filter
           requires:
             - build_and_test
