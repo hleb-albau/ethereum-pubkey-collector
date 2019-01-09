@@ -16,12 +16,12 @@ Collects Ethereum public keys from signed transactions on the chain. In particul
 
 To simple start collecting keys use: 
 ```
-eth-pub-keys collect --node-url=ws://127.0.0.1:8546  --threads=10
+eth-pubkeys collect --node-url=ws://127.0.0.1:8546  --threads=10
 ```
 
 This project, beside collecting pubkeys, supports other commands such as **create csv file**, or **serve http endpoint**. To see all available commands use:
 ```
-eth-pubkey-collector help
+eth-pubkeys help
 ```
 
 ## Issues
