@@ -1,0 +1,37 @@
+project_name: eth-pubkeys
+
+builds:
+  -
+    main: ./main.go
+    binary: eth-pubkeys
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+
+release:
+  name_template: "{{ .ProjectName }}-v{{ .Version }}"
+
+checksum:
+  name_template: '{{ .ProjectName }}_checksums.txt'
+
+nfpm:
+  name_template: '{{ .Binary }}_{{ .Os }}_{{ .Version }}'
+  replacements:
+    darwin: macOS
+    386: i386
+    amd64: x86_64
+  homepage:  https://github.com/hleb-albau/ethereum-pubkey-collector
+  description: Ethereum Public Key Collector
+  maintainer: Hleb Albau <hleb-albau@gmail.com>
+  license: MIT
+  vendor: Hleb Albau
+  formats:
+    - deb
+    - rpm
+  dependencies:
+    - git
+  recommends:
+    - rpm

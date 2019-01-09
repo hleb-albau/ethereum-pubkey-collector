@@ -1,0 +1,53 @@
+version: 2
+
+aliases:
+  - &release_filter
+    filters:
+      tags:
+        only: /.*/
+      branches:
+        ignore: /.*/
+
+jobs:
+
+  build_and_test:
+    working_directory: ~/ethereum-pubkey-collector
+    docker:
+      - image: circleci/golang:1.11.2
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Build And Test Project
+          command: |
+            go build ./...
+
+  release_binaries:
+    working_directory: ~/ethereum-pubkey-collector
+    docker:
+      - image: circleci/golang:1.11.2
+    steps:
+      - checkout
+      - setup_remote_docker:
+          version: 17.11.0-ce
+      - run:
+          name: Release binaries
+          command: |
+            go build -o eth-pubkeys ./
+            sudo apt-get update && sudo apt-get install -y rpm
+            curl -sL https://git.io/goreleaser | bash
+
+
+workflows:
+  version: 2
+  cyberd_build:
+    jobs:
+      - build_and_test:
+          filters:
+            tags:
+              only: /.*/
+      - release_binaries:
+          <<: *release_filter
+          requires:
+            - build_and_test
