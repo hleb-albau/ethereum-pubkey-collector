@@ -46,10 +46,13 @@ func (db *Db) GetAddressPublicKey(address common.Address) (key []byte) {
 	return
 }
 
-func (db *Db) IteratePubkeys(execute func(address []byte, key []byte)) {
-	iter := db.base.NewIterator(nil, nil)
+func (db *Db) MergeDbs(fromDb *Db) {
+	batch := &leveldb.Batch{}
+	iter := fromDb.base.NewIterator(nil, nil)
 	for iter.Next() {
-		execute(iter.Key(), iter.Value())
+		batch.Put(iter.Key(), iter.Value())
 	}
 	iter.Release()
+	batch.Delete(lastBlockKey)
+	_ = db.base.Write(batch, nil)
 }

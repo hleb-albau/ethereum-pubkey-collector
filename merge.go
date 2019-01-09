@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"github.com/spf13/cobra"
-	"github.com/syndtr/goleveldb/leveldb"
 )
 
 // Usage: eth-pub-keys merge-dbs from to
@@ -26,13 +24,7 @@ func MergeDbsCmd() *cobra.Command {
 				return err
 			}
 
-			batch := &leveldb.Batch{}
-			fromDb.IteratePubkeys(func(address []byte, key []byte) {
-				batch.Put(address, key)
-			})
-			toDb.SavePublicKeysBatch(batch)
-			fmt.Printf("%v keys added to %s ", batch.Len(), args[1])
-
+			toDb.MergeDbs(&fromDb)
 			return nil
 		},
 	}
