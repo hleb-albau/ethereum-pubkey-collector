@@ -6,14 +6,16 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"math/big"
+	"sync"
 	"time"
 )
 
 const (
 	nodeUrlFlag = "node-url"
+	threads     = "threads"
 )
 
-// Usage: eth-pub-keys collect --node-url=https://mainnet.infura.io
+// Usage: eth-pub-keys collect --node-url=https://mainnet.infura.io --threads=10
 func CollectCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "collect",
@@ -43,29 +45,25 @@ func CollectCmd() *cobra.Command {
 			}
 
 			lastNetworkBlock := header.Number.Int64()
+			threads := viper.GetInt64(threads)
 			log.Println("Last network block", lastNetworkBlock)
 
-			for blockNum := lastProcessedBlock; blockNum <= lastNetworkBlock; blockNum++ {
+			for blockNum := lastProcessedBlock; blockNum <= lastNetworkBlock; blockNum += threads {
 
-				if blockNum%100 == 0 {
-					log.Printf("Processing block %v.", blockNum)
+				var wg sync.WaitGroup
+				wg.Add(int(threads))
+				for i := int64(0); i < threads; i++ {
+					go func(thread int64) {
+						downloadAndProcessBlock(blockNum+thread, client, db)
+						wg.Done()
+					}(i)
+				}
+				wg.Wait()
+
+				if blockNum-lastProcessedBlock > 100 {
+					log.Printf("Processed block %v.", blockNum)
 					db.SaveLastProcessedBlock(uint64(blockNum))
-				}
-
-				block, err := client.BlockByNumber(ctx, big.NewInt(blockNum))
-				if err != nil {
-					// retry after 5 secs
-					time.Sleep(time.Second * 5)
-					blockNum--
-					continue
-				}
-
-				for _, tx := range block.Transactions() {
-					// process only first txes for each address
-					if tx.Nonce() == 0 {
-						address, pubkey := GetPubKey(tx)
-						db.SaveAddressPublicKey(address, pubkey)
-					}
+					lastProcessedBlock = blockNum
 				}
 			}
 			log.Printf("Collecting pubkeys till %v block finished", lastNetworkBlock)
@@ -73,6 +71,33 @@ func CollectCmd() *cobra.Command {
 		},
 	}
 	cmd.Flags().String(nodeUrlFlag, "https://mainnet.infura.io", "web3 endpoint")
+	cmd.Flags().Int64(threads, 4, "number of concurrent collectors")
 	_ = viper.BindPFlag(nodeUrlFlag, cmd.Flags().Lookup(nodeUrlFlag))
+	_ = viper.BindPFlag(threads, cmd.Flags().Lookup(threads))
 	return cmd
+}
+
+func downloadAndProcessBlock(blockNum int64, client *ethclient.Client, db Db) {
+
+	// loop for retry
+	for true {
+
+		block, err := client.BlockByNumber(ctx, big.NewInt(blockNum))
+
+		if err != nil {
+			// retry after 5 secs
+			log.Printf("Could not download block %v:\n %e", blockNum, err)
+			time.Sleep(time.Second * 10)
+			continue
+		}
+
+		for _, tx := range block.Transactions() {
+			// process only first txes for each address
+			if tx.Nonce() == 0 {
+				address, pubkey := GetPubKey(tx)
+				db.SaveAddressPublicKey(address, pubkey)
+			}
+		}
+		break
+	}
 }
