@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -44,6 +45,18 @@ func (db *Db) SaveAddressPublicKey(address common.Address, pubkey []byte) {
 func (db *Db) GetAddressPublicKey(address common.Address) (key []byte) {
 	key, _ = db.base.Get(address[:], nil)
 	return
+}
+
+// return all loaded keys for addresses. both in hex format, keys are uncompressed
+func (db *Db) GetAddressesPublicKeys() map[string]string {
+	keys := make(map[string]string)
+	iter := db.base.NewIterator(nil, nil)
+	for iter.Next() {
+		address := common.BytesToAddress(iter.Key())
+		keys[address.Hex()] = hexutil.Encode(iter.Value())
+	}
+	iter.Release()
+	return keys
 }
 
 func (db *Db) MergeDbs(fromDb *Db) {
