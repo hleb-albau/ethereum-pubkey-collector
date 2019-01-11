@@ -12,7 +12,7 @@ Collects Ethereum public keys from signed transactions on the chain. In particul
 
 ## Installing
 
-You can download already compiled binaries from [release section](https://github.com/hleb-albau/ethereum-pubkey-collector/releases). But, unfortently, not for all platforms binaries are avaialble (see [issue #4](https://github.com/hleb-albau/ethereum-pubkey-collector/issues/4)). 
+You can download already compiled binaries from [release section](https://github.com/hleb-albau/ethereum-pubkey-collector/releases). But, unfortunfortunatelyently, not for all platforms binaries are available (see [issue #4](https://github.com/hleb-albau/ethereum-pubkey-collector/issues/4)). 
 
 You can build executable by your own (Go 1.11+ **required**):
 ```
