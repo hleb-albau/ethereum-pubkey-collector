@@ -12,6 +12,16 @@ Collects Ethereum public keys from signed transactions on the chain. In particul
 
 ## Installing
 
+You can download already compiled binaries from [release section](https://github.com/hleb-albau/ethereum-pubkey-collector/releases). But, unfortently, not for all platforms binaries are avaialble (see [issue #4](https://github.com/hleb-albau/ethereum-pubkey-collector/issues/4)). 
+
+You can build executable by your own (Go 1.11+ **required**):
+```
+git clone git@github.com:hleb-albau/ethereum-pubkey-collector.git
+cd  ethereum-pubkey-collector
+go build -o eth-pubkeys ./
+# than copy eth-pubkeys to your path, or use it as local executable `./eth-pubkeys` instead of `eth-pubkeys`
+```
+
 ## Usage
 
 To simple start collecting keys use: 
@@ -19,7 +29,7 @@ To simple start collecting keys use:
 eth-pubkeys collect --node-url=ws://127.0.0.1:8546  --threads=10
 ```
 
-This project, beside collecting pubkeys, supports other commands such as **create csv file**, or **serve http endpoint**. To see all available commands use:
+This project, beside collecting pubkeys, supports other commands such as **create csv file**. To see all available commands use:
 ```
 eth-pubkeys help
 ```
