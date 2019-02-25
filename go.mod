@@ -1,4 +1,4 @@
-module github.com/hleb-albau/eth-pubkeys-collector
+module github.com/hleb-albau/ethereum-pubkey-collector
 
 require (
 	github.com/allegro/bigcache v1.1.0 // indirect
