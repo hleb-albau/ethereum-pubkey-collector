@@ -2,15 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/hleb-albau/ethereum-pubkey-collector/crypto"
+	"github.com/hleb-albau/ethereum-pubkey-collector/storage"
 	"github.com/pkg/errors"
-	"github.com/spf13/viper"
-	"github.com/tendermint/btcd/btcec"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
-	"github.com/tendermint/tendermint/libs/bech32"
-
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -26,7 +23,7 @@ func CosmosAddressCmd() *cobra.Command {
 		Short: "Calculates for given eth address cosmos-based chain address",
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			db, err := OpenDb("eth-pubkeys")
+			db, err := storage.OpenDb("eth-pubkeys")
 			if err != nil {
 				return err
 			}
@@ -44,8 +41,8 @@ func CosmosAddressCmd() *cobra.Command {
 				return errors.New("No public key found for provided address")
 			}
 
-			cosmosAddr := CosmosAddressFromEthKey(ethRawPubkey)
-			fmt.Printf("[Eth: %s] [Cosmos: %s]", ethAddrHex, EncodeToHex(cosmosAddr, viper.GetString(accPrefixFlag)))
+			cosmosAddr := crypto.CosmosAddressFromEthKey(ethRawPubkey)
+			fmt.Printf("[Eth: %s] [Cosmos: %s]", ethAddrHex, crypto.EncodeToHex(cosmosAddr, viper.GetString(accPrefixFlag)))
 			return nil
 		},
 	}
@@ -55,23 +52,4 @@ func CosmosAddressCmd() *cobra.Command {
 	_ = viper.BindPFlag(addressFlag, cmd.Flags().Lookup(addressFlag))
 	_ = viper.BindPFlag(accPrefixFlag, cmd.Flags().Lookup(accPrefixFlag))
 	return cmd
-}
-
-func CosmosAddressFromEthKey(ethRawPubkey []byte) types.AccAddress {
-
-	var ethCompressedPubkey [33]byte
-	ethPubkey, _ := btcec.ParsePubKey(ethRawPubkey[:], btcec.S256())
-	copy(ethCompressedPubkey[:], ethPubkey.SerializeCompressed()[:])
-
-	cbdPubKey := secp256k1.PubKeySecp256k1(ethCompressedPubkey)
-	cbdAddr := types.AccAddress(cbdPubKey.Address())
-	return cbdAddr
-}
-
-func EncodeToHex(address types.AccAddress, accPrefix string) string {
-	bech32Addr, err := bech32.ConvertAndEncode(accPrefix, address.Bytes())
-	if err != nil {
-		panic(err)
-	}
-	return bech32Addr
 }

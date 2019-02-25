@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/hleb-albau/ethereum-pubkey-collector/crypto"
+	"github.com/hleb-albau/ethereum-pubkey-collector/storage"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"log"
@@ -26,7 +28,7 @@ func CollectCmd() *cobra.Command {
            Collected data are stored in LevelDb as current sub-folder "eth-pubkeys".`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			db, err := OpenDb("eth-pubkeys")
+			db, err := storage.OpenDb("eth-pubkeys")
 			if err != nil {
 				return err
 			}
@@ -77,7 +79,7 @@ func CollectCmd() *cobra.Command {
 	return cmd
 }
 
-func downloadAndProcessBlock(blockNum int64, client *ethclient.Client, db Db) {
+func downloadAndProcessBlock(blockNum int64, client *ethclient.Client, db storage.Db) {
 
 	// loop for retry
 	for true {
@@ -94,7 +96,7 @@ func downloadAndProcessBlock(blockNum int64, client *ethclient.Client, db Db) {
 		for _, tx := range block.Transactions() {
 			// process only first txes for each address
 			if tx.Nonce() == 0 {
-				address, pubkey := GetPubKey(tx)
+				address, pubkey := crypto.GetPubKey(tx)
 				db.SaveAddressPublicKey(address, pubkey)
 			}
 		}

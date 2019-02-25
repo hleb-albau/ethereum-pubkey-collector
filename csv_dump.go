@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/csv"
+	"github.com/hleb-albau/ethereum-pubkey-collector/storage"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -16,7 +17,7 @@ func DumpToCSVCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			db, err := OpenDb("eth-pubkeys")
+			db, err := storage.OpenDb("eth-pubkeys")
 			if err != nil {
 				return err
 			}

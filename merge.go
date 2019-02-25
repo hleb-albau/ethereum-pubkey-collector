@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/hleb-albau/ethereum-pubkey-collector/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -14,12 +15,12 @@ func MergeDbsCmd() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 
-			fromDb, err := OpenDb(args[0])
+			fromDb, err := storage.OpenDb(args[0])
 			if err != nil {
 				return err
 			}
 
-			toDb, err := OpenDb(args[1])
+			toDb, err := storage.OpenDb(args[1])
 			if err != nil {
 				return err
 			}
